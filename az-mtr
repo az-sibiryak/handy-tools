@@ -1,0 +1,104 @@
+#!/bin/bash
+
+#
+# Name:         az-mtr
+# Version:      1.0.2
+#
+# (c) 2024, Rapidseedbox, alexey.mcmlxxi@gmail.com
+#
+
+set -o pipefail
+
+export LANG=en_US
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# Fix "bad" terminals
+case "${TERM}" in
+  xterm* )
+      export TERM="linux"
+      ;;
+esac
+
+SC_NAME="$( basename "${0}" )"
+SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
+
+# Quick checks before we allow bad things to happen
+if [ -z "${BASH_VERSINFO}" ]; then
+    >&2 echo "ERROR: You must execute this script with BASH"
+    exit 1
+fi
+if [ -z "${SSH_CONNECTION}" ]; then
+    >&2 echo "ERROR: SSH_CONNECTION variable is empty"
+    exit 1
+fi
+
+_rc=0
+for _cmd in \
+    "mtr" \
+; do
+    if ! command -v "${_cmd}" > /dev/null 2>&1 ; then
+        >&2 echo "${_cmd}: command not found!"
+        (( _rc ++ ))
+    fi
+done
+if [ "${_rc}" != "0" ] ; then
+    >&2 echo "Can not continue..."
+    exit 1
+fi
+
+
+_usage() {
+    cat <<-EOF
+
+	${SC_NAME} ${SC_VER}
+
+	Usage:
+	------------
+	    ${SC_NAME} [-h] [-n]
+
+	    -h       - Display this help message
+	    -n       - Don't resolve hostnames
+
+	EOF
+}
+
+# Parse command line
+PARSE_ERR=0
+DNS="yes"
+while getopts ":hn" params; do
+    case "${params}" in
+      h)
+          _usage ; exit 0
+          ;;
+      n)
+          DNS="no"
+          continue
+          ;;
+      \?) 
+          >&2 echo "Invalid option: -${OPTARG}" >&2
+          PARSE_ERR=1
+          ;;
+    esac
+done
+if [ "${PARSE_ERR}" != "0" ] ; then
+    _usage ; exit 2
+fi
+shift "$(( OPTIND - 1 ))"
+
+
+args=""
+
+if [ ${DNS} = "no" ] ; then
+#    [ -z "${args}" ] && args="${args} "
+    args="${args} -n"
+fi
+
+#mtr${args} -r -w -b -4 -c 1 -y 2 "$( awk '{print $1}' <<< "${SSH_CONNECTION}" )"
+IP="$( awk '{print $1}' <<< "${SSH_CONNECTION}" )"
+CMD="mtr${args} -r -w -b -4 -c 1 -y 2 ${IP}"
+echo "${CMD}"
+${CMD}
+_rc=$?
+
+
+exit ${_rc}

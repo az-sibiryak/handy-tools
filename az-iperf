@@ -1,0 +1,469 @@
+#!/bin/bash
+
+#
+# Name:         rsb-iperf
+# Version:      1.0.8
+#
+# (c) 2024, Rapidseedbox, alexey.mcmlxxi@gmail.com
+#
+
+set -o pipefail
+
+export LANG=en_US
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+shopt -u checkwinsize
+
+# Fix "bad" terminals
+case "${TERM}" in
+  xterm* )
+      export TERM="linux"
+      ;;
+esac
+
+
+SC_NAME="$( basename "${0}" )"
+SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
+SC_PID="$$"
+
+# Quick checks before we allow bad things to happen
+if [ -z "${BASH_VERSINFO}" ]; then
+    >&2 echo "ERROR: You must execute this script with BASH"
+    exit 1
+fi
+
+_rc=0
+for _cmd in \
+    "dialog" \
+    "iperf3" \
+    "lsb_release" \
+; do
+    if ! command -v "${_cmd}" > /dev/null 2>&1 ; then
+        >&2 echo "${_cmd}: command not found!"
+        (( _rc ++ ))
+    fi
+done
+if [ "${_rc}" != "0" ] ; then
+    >&2 echo "Can not continue..."
+    exit 1
+fi
+
+# -- Create associative arrays for regions
+declare -A leaseweb africa asia europe latin_america north_america oceania
+
+leaseweb=( \
+    [Europe, DE, Frankfurt]="speedtest.fra1.de.leaseweb.net" \
+    [Europe, GB, London \(1\)]="speedtest.lon1.uk.leaseweb.net" \
+    [Europe, GB, London \(2\)]="speedtest.lon12.uk.leaseweb.net" \
+    [Europe, NL, AMS01]="speedtest.ams1.nl.leaseweb.net" \
+    [Europe, NL, AMS02]="speedtest.ams2.nl.leaseweb.net" \
+    [Asia, HK, Hong Kong]="speedtest.hkg12.hk.leaseweb.net" \
+    [Asia, JP, Tokyo]="speedtest.tyo11.jp.leaseweb.net" \
+    [Asia, SG, Singapore]="speedtest.sin1.sg.leaseweb.net" \
+    [North America, CA, Montreal]="speedtest.mtl2.ca.leaseweb.net" \
+    [North America, US, Chicago]="speedtest.chi11.us.leaseweb.net" \
+    [North America, US, Dallas]="speedtest.dal13.us.leaseweb.net" \
+    [North America, US, Los Angeles]="speedtest.lax12.us.leaseweb.net" \
+    [North America, US, Miami]="speedtest.mia11.us.leaseweb.net" \
+    [North America, US, New York]="speedtest.nyc1.us.leaseweb.net" \
+    [North America, US, Phoenix]="speedtest.phx1.us.leaseweb.net" \
+    [North America, US, San Francisco]="speedtest.sfo12.us.leaseweb.net" \
+    [North America, US, Seattle]="speedtest.sea11.us.leaseweb.net" \
+    [North America, US, Washington]="speedtest.wdc2.us.leaseweb.net" \
+    [Oceania, AU, Sydney]="speedtest.syd12.au.leaseweb.net" \
+    )
+
+africa=( \
+    [AO, Luanda \(Paratus Telecommunications\)]="monitor.ita.ao" \
+    [GQ, Bata \(Guineanet PoP Malabo\)]="105.235.237.2" \
+    [MU, Floreal \(MauritiusTelecom\)]="speedtestfl.telecom.mu" \
+    [MU, Port Louis \(MauritiusTelecom\)]="speedtest.telecom.mu" \
+    [MU, Rose Hill \(MauritiusTelecom\)]="speedtestrh.telecom.mu" \
+    [RW, Kigali \(SEACOM\)]="sl-01-kgl.rw.seacomnet.com" \
+    [ZA, Cape Town \(Vumatel\)]="154.0.5.20" \
+    [ZA, Johannesburg \(BitCo\)]="speedtest1.bitco.co.za" \
+    [ZA, Johannesburg \(CISP\)]="tengig.cisp.co.za" \
+    )
+
+asia=( \
+    [AZ, Baku \(BEEONLINE\)]="speedtest.beeonline.az" \
+    [HK, Hong Kong \(DataCamp\)]="84.17.57.129" \
+    [ID, Jakarta \(MyRepublic\)]="speedtest.myrepublic.net.id" \
+    [IL, Jerusalem \(Oasis communication, #1\)]="speed.netfiber.net.il" \
+    [IL, Jerusalem \(Oasis communication, #2\)]="speed.rimon.net.il" \
+    [IL, Tel Aviv \(Datacamp\)]="84.17.57.129" \
+    [IN, Suri \(HostPalace Web Solution\)]="speedtest.host-palace.com" \
+    [KZ, Aktau \(Transtelecom Kazakhstan\)]="91.185.23.98" \
+    [MY, Kuala Lumpur \(MYREN\)]="iperf.myren.net.my" \
+    [SG, Singapore \(DataCamp\)]="89.187.162.1" \
+    [SG, Singapore \(OVH\)]="sgp.proof.ovh.net" \
+    [SG, Singapore \(webhorizon.net\)]="lg-sg-sin.webhorizon.net" \
+    [TR, Istanbul \(DataCamp\)]="156.146.52.1" \
+    [UZ, Tashkent \(Uzbektelekom\)]="speedtest.uztelecom.uz" \
+    )
+
+europe=( \
+    [CH, Schaffhausen \(sasag Kabelkommunikation AG\)]="speedtest.shinternet.ch" \
+    [CH, Winterthur \(Init Seven AG\)]="speedtest.init7.net" \
+    [CH, Zurich \(Interway Communication\)]="speedtest.iway.ch" \
+    [CZ, Mikulov \(PODA\)]="rychlost.poda.cz" \
+    [DE, Berlin \(Wobcom GmbH, #1\)]="a209.speedtest.wobcom.de" \
+    [DE, Berlin \(Wobcom GmbH, #2\)]="a110.speedtest.wobcom.de" \
+    [DE, Dusseldorf \(Wobcom GmbH\)]="a208.speedtest.wobcom.de" \
+    [DE, Frankfurt \(Clouvider\)]="fra.speedtest.clouvider.net" \
+    [DE, Frankfurt \(Wobcom GmbH ,#1\)]="a210.speedtest.wobcom.de" \
+    [DE, Frankfurt \(Wobcom GmbH ,#2\)]="a205.speedtest.wobcom.de" \
+    [DE, Frankfurt \(webhorizon.net\)]="lg-de-fra.webhorizon.net" \
+    [DE, Frankfurt \(HOSTKEY B.V.\)]="spd-desrv.hostkey.com" \
+    [DE, Hamburg \(Studio Funk GmbH\)]="speedtest.studiofunk.de" \
+    [DE, Norderstedt \(wilhelm.tel GmbH\)]="speedtest.wtnet.de" \
+    [DE, Wolfsburg \(Wobcom GmbH, #1\)]="speedtest.wobcom.de" \
+    [DE, Wolfsburg \(Wobcom GmbH, #2\)]="a400.speedtest.wobcom.de" \
+    [DK, Copenhagen \(Fiberby ApS\)]="speed.fiberby.dk" \
+    [DK, Copenhagen \(Hiper A/S\)]="speedtest.hiper.dk" \
+    [FI, Helsinki \(HOSTKEY B.V.\)]="spd-fisrv.hostkey.com" \
+    [FI, Oulu \(Netplaza Oy\)]="speedtest.cinia.fi" \
+    [FR, Ile-de-France \(DC Moji\)]="iperf3.moji.fr" \
+    [FR, Gravelines \(OVH\)]="gra.proof.ovh.net" \
+    [FR, Paris \(Bouygues Telecom, #1\)]="bouygues.testdebit.info" \
+    [FR, Paris \(Bouygues Telecom, #2\)]="paris.testdebit.info" \
+    [FR, Roubaix \(OVH\)]="rbx.proof.ovh.net" \
+    [FR, Strasbourg \(OVH\)]="sbg.proof.ovh.net" \
+    [FR, Vitry-sur-Seine \(Scaleway\)]="ping.online.net" \
+    [GB, London \(Clouvider\)]="lon.speedtest.clouvider.net" \
+    [GB, Erith \(OVH\)]="eri.proof.ovh.net" \
+    [HU, Budapest \(Vodafone Hungary\)]="speedtest1.vodafone.hu" \
+    [IC, Reykjavik \(HOSTKEY B.V.\)]="spd-icsrv.hostkey.com" \
+    [IT, Arezzo \(Aruba S.p.A.\)]="it1.speedtest.aruba.it" \
+    [IT, Gerbido \(ITGate\)]="speed.itgate.net" \
+    [IT, Ponte San Pietro \(Aruba S.p.A.\)]="217.61.40.96" \
+    [NL \(NETONE, #1\)]="speedtest01.netone.nl" \
+    [NL \(NETONE, #2\)]="speedtest02.netone.nl" \
+    [NL, Amsterdam \(Clouvider\)]="ams.speedtest.clouvider.net" \
+    [NL, Amsterdam \(Scaleway\)]="ping-ams1.online.net" \
+    [NL, Amsterdam \(Wobcom GmbH\)]="a204.speedtest.wobcom.de" \
+    [NL, Amsterdam \(NovoServe B.V.\)]="speedtest.novoserve.com" \
+    [NL, Amsterdam \(Novogara\)]="speedtest.ams1.novogara.net" \
+    [NL, Amsterdam \(HOSTKEY\)]="spd-nlsrv.hostkey.com" \
+    [NL, Amsterdam \(TerraHost\)]="lg.ams-nl.terrahost.com" \
+    [NL, Dronten \(The Infrastructure Group B.V.\)]="lg-drn.liteserver.nl" \
+    [NL, Naaldwijk \(worldstream.nl\)]="iperf.worldstream.nl" \
+    [NO, Sandefjord \(TerraHost\)]="lg.terrahost.com" \
+    [PL, Warsaw \(P4 Sp. z o.o.\)]="speedtest-w5-rnp.play.pl" \
+    [PT, Lissabon \(NOS COMUNICACOES S.A.\)]="95.95.252.87" \
+    [RU, Irkutsk \(ER_Telekom\)]="iperf.irkutsk.ertelecom.ru" \
+    [RU, Nizhny Novgorod \(MTS\)]="iperf.mts-nn.ru" \
+    [RU, Novosibirsk \(ER_Telekom\)]="iperf.nsk.ertelecom.ru" \
+    [RU, Omsk \(ER_Telekom\)]="iperf.omsk.ertelecom.ru" \
+    [RU, Perm \(ER_Telekom\)]="iperf.perm.ertelecom.ru" \
+    [RU, Samara \(ER_Telekom\)]="iperf.samara.ertelecom.ru" \
+    [RU, Saratov \(ER_Telekom\)]="iperf.saratov.ertelecom.ru" \
+    [SE, Kista \(Kamel Networks\)]="speedtest.kamel.network" \
+    [SE, Stockholm \(Ownit Broadband AB\)]="speedtest.ownit.se" \
+    [SE, Viken \(Telia\)]="se-speedt01.fre.nis.telia.net" \
+    [UA, Poltava \(Solver Ltd\)]="speedtest.solver.net.ua" \
+    )
+
+latin_america=( \
+    [BR, Sao Paulo \(DataCamp\)]="138.199.4.1" \
+    [CL, Valdivia \(Telefonica del Sur S.A.\)]="speedtest-cncp.grupogtd.com" \
+    [CO, Bogota \(DataCamp\)]="169.150.228.129" \
+    [CR, San Jose \(DataCamp\)]="156.146.53.53" \
+    [EC, Santa Ana \(DataCamp\)]="speedtest.masnet.ec" \
+    [MX, Mexico City \(Axtel, S.A.B. de C.V.\)]="cdjspeedtest.axtel.mx" \
+    [MX, Queretaro]="121.127.43.65" \
+    [PY, Asuncion \(Telecel S.A.\)]="speedtest.tigo.com.py" \
+    [SR, Paramaribo \(Telesur - Suriname\)]="200.2.166.166" \
+    )
+
+north_america=( \
+    [CA, Beauharnois \(OVH\)]="bhs.proof.ovh.ca" \
+    [CA, Wetaskiwin \(Wetaskiwin CPE\)]="speedtest-west.eastlink.ca" \
+    [US, Ashburn \(Clouvider\)]="ash.speedtest.clouvider.net" \
+    [US, Ashburn \(Verizon, #1\)]="fiosspeed1.west.verizon.net" \
+    [US, Ashburn \(Verizon, #2\)]="fiosspeed2.west.verizon.net" \
+    [US, Charleston \(Optimum \(SUDDE\), #1\)]="speedtest13.suddenlink.net" \
+    [US, Charleston \(Optimum \(SUDDE\), #2\)]="speedtest15.suddenlink.net" \
+    [US, Dallas \(Clouvider\)]="dal.speedtest.clouvider.net" \
+    [US, Eau Claire \(Airstream\)]="iperf.airstreamcomm.net" \
+    [US, Hillsboro \(OVH\)]="hil.proof.ovh.us" \
+    [US, Los Angeles \(Clouvider\)]="la.speedtest.clouvider.net" \
+    [US, Madison \(TDS TELECOM\)]="speedtest.tds.net" \
+    [US, New York \(HOSTKEY\)]="spd-uswb.hostkey.com" \
+    [US, New York \(Clouvider\)]="nyc.speedtest.clouvider.net" \
+    [US, Reston \(OVH\)]="vin.proof.ovh.us" \
+    )
+
+oceania=( \
+    [AU, Sydney \(Datacamp\)]="143.244.63.144" \
+    [AU, Sydney \(OVH\)]="syd.proof.ovh.net" \
+    [NC, Noumea \(OFFRATELNC\)]="speedtest.lagoon.nc" \
+    [NZ, Auckland \(NOW NZ\)]="speedtest5.nownz.co.nz" \
+    )
+
+
+
+# ----------------------------------------------------------------- #
+# --                                                             -- #
+# --                 GLOBAL VARIABLES                            -- #
+# --                                                             -- #
+# ----------------------------------------------------------------- #
+
+# -- TERM dimensions
+max_lines="$( tput lines )"
+max_lines="$(( max_lines - 3 ))"
+max_columns="$( tput cols )"
+export max_lines max_columns
+
+# -- `dialog` exit status codes and options
+DIALOG_OK=0
+DIALOG_CANCEL=1
+DIALOG_HELP=2
+DIALOG_EXTRA=3
+DIALOG_ITEM_HELP=4
+DIALOG_ESC=255
+DIALOG_OPTS="--ascii-lines --no-collapse --colors"
+
+INPUT="/tmp/${SC_NAME}.${SC_PID}.in"
+OUTPUT="/tmp/${SC_NAME}.${SC_PID}.out"
+
+
+# ----------------------------------------------------------------- #
+# --                                                             -- #
+# --                     FUNCTIONS                               -- #
+# --                                                             -- #
+# ----------------------------------------------------------------- #
+
+# -- Echo the backtitle string in form 'Backtitle ... spaces ... [SC_VER]'
+_backtitle () {
+    local v_len
+    local t_len
+    local n_spaces
+    local bt
+
+    bt="${SC_NAME} ${SC_VER}: ${1}"
+
+    t_len="$( wc -c <<< "${bt}" )"
+    v_len="$( wc -c <<< "${SC_VER}" )"
+    n_spaces="$(( max_columns - t_len - v_len ))"
+
+    printf "%s%${n_spaces}s%s" "${bt}" " " "${SC_VER}"
+}
+
+_dialog_msgbox () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local m="${3}"                  # box content
+    local bt
+
+    dialog \
+        ${DIALOG_OPTS} \
+        --aspect 14 \
+        --title "   ${t}   " \
+        --backtitle "$( _backtitle "${b}" )" \
+        --scrollbar \
+        --msgbox "${m}" \
+        0 0
+
+    return 0
+}
+
+_dialog_infobox () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local m="${3}"                  # box content
+    local bt
+
+    dialog \
+        ${DIALOG_OPTS} \
+        --aspect 14 \
+        --title "   ${t}   " \
+        --backtitle "$( _backtitle "${b}" )" \
+        --infobox "${m}" \
+        0 0
+
+    return 0
+}
+
+_dialog_please_wait () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local bt
+
+    _dialog_infobox "${t}" "${b}" "\n      Please wait      \n\n"
+
+    return 0
+}
+
+_dialog_textbox () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local m="${3}"                  # box content
+
+    echo -e "${m}" | expand > "${TEXT}"
+
+    dialog \
+        ${DIALOG_OPTS} \
+        --aspect 14 \
+        --title "   ${t}   " \
+        --backtitle "$( _backtitle "${b}" )" \
+        --exit-label "OK" \
+        --scrollbar \
+        --textbox "${TEXT}" \
+        0 0
+
+    return 0
+}
+
+
+
+# ----------------------------------------------------------------- #
+# --                                                             -- #
+# --                     MAIN LOOP                               -- #
+# --                                                             -- #
+# ----------------------------------------------------------------- #
+
+default_region=""
+
+while true ; do
+    ar_menu_regions=( \
+           "Leaseweb" "" "" \
+           "Africa" "" "" \
+           "Asia" "" "" \
+           "Europe" "" "" \
+           "Latin America" "" "" \
+           "North America" "" "" \
+           "Oceania" "" "" \
+        )
+    dialog ${DIALOG_OPTS} \
+        --backtitle "$( _backtitle "Network throughput test" )" \
+        --title " [ M A I N - M E N U ] " \
+        --cancel-label "Exit" \
+        --default-item "${default_region}" \
+        --item-help \
+        --menu "Choose the region" \
+          0 0 0 \
+            "${ar_menu_regions[@]}" 2> "${INPUT}"
+    _rc=$?
+
+    region="$( < "${INPUT}" )"
+
+    [ "${_rc}" = "${DIALOG_CANCEL}" ] \
+            || [ "${_rc}" = "${DIALOG_ESC}" ] \
+            || [ -z "${region}" ] \
+        && break
+
+    default_region="${region}"
+    region_var="$( tr ' ' '_' <<< "${region}" )"
+    region_var="${region_var,,}"
+
+    eval ar_tmp=\( \"\$\{!${region_var}[@]\}\" \)
+    IFS=$'\n' ar_tmp_sorted=( $( sort <<< "${ar_tmp[*]}" ) ) ; unset IFS
+
+    ar_menu_locations=()
+    for _location in "${ar_tmp_sorted[@]}" ; do
+        ar_menu_locations+=( "${_location}" "" )
+    done
+
+    [ -z "${ar_menu_locations[*]}" ] && continue
+
+    default_location=""
+
+    while true ; do
+        dialog ${DIALOG_OPTS} \
+            --backtitle "$( _backtitle "Network throughput test: ${region}" )" \
+            --title " [ M A I N - M E N U ] " \
+            --cancel-label "<< Back" \
+            --default-item "${default_location}" \
+            --menu "Select the location" \
+              0 0 0 \
+                "${ar_menu_locations[@]}" 2> "${INPUT}"
+        _rc=$?
+
+        location="$( < "${INPUT}" )"
+
+        [ "${_rc}" = "${DIALOG_CANCEL}" ] \
+                || [ "${_rc}" = "${DIALOG_ESC}" ] \
+                || [ -z "${location}" ] \
+            && break
+
+        default_location="${location}"
+
+        eval iperf_server=\"\$\{${region_var}["${location}"]\}\"
+
+        _bt="Testing ${region}, ${location}"
+
+        _dialog_please_wait \
+            "*** Processing: ${iperf_server} ***" \
+            "${_bt}"
+
+        case "${iperf_server}" in
+          "sgp.proof.ovh.net" \
+          | "speedtest.myrepublic.net.id")
+              iperf_port="5202"
+              ;;
+          "iperf3.moji.fr")
+              iperf_port="5239"
+              ;;
+          "maritimeai.msngroup.id" \
+          | "speedtest.myrepublic.net.id" \
+          | "lg-sg-sin.webhorizon.net" \
+          | "178.215.228.109" \
+          | "lg.ams-nl.terrahost.com" \
+          | "lg.terrahost.com")
+              iperf_port="9200"
+              ;;
+          "monitor.ita.ao" \
+          | "speed.fiberby.dk" \
+          | "bouygues.testdebit.info" \
+          | "paris.testdebit.info")
+              iperf_port="9201"
+              ;;
+          "tengig.cisp.co.za")
+              iperf_port="17001"
+              ;;
+          *)
+              iperf_port="5201"
+              ;;
+        esac
+
+        iperf_result="$( \
+            timeout 5m iperf3 -4 -c "${iperf_server}" -p "${iperf_port}" 2>&1 \
+            )"
+        _rc=$?
+
+        if [ "${_rc}" != "0" ] ; then
+            if [ "${_rc}" = "124" ] ; then
+                iperf_result="${iperf_result}
+
+Timeout reached!
+"
+            fi
+            _dialog_msgbox \
+                "\Z1\Zb\Zr!!! ${iperf_server}: ERROR !!!\Zn" \
+                "${_bt}" \
+                "
+${iperf_result}
+
+"
+        else
+            _dialog_msgbox \
+                "\Z2\Zb\Zr*** ${iperf_server}: Success ***\Zn" \
+                "${_bt}" \
+                "
+${iperf_result}
+
+"
+        fi
+
+    done
+
+done
+
+
+# -- Cleanup
+[ -e "${INPUT}" ] && rm -f "${INPUT}"
+[ -e "${OUTPUT}" ] && rm -f "${OUTPUT}"
+
+reset
+exit 0
