@@ -2,14 +2,14 @@
 
 #
 # Name:         az-mtr
-# Version:      1.0.2
+# Version:      1.0.3
 #
-# (c) 2024, Rapidseedbox, alexey.mcmlxxi@gmail.com
+# (c) 2024, alexey.mcmlxxi@gmail.com
 #
 
 set -o pipefail
 
-export LANG=en_US
+export LANG="en_US"
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 # Fix "bad" terminals

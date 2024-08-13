@@ -1,15 +1,15 @@
 #!/bin/bash
 
 #
-# Name:         rsb-iperf
-# Version:      1.0.8
+# Name:         az-iperf
+# Version:      1.0.9
 #
-# (c) 2024, Rapidseedbox, alexey.mcmlxxi@gmail.com
+# (c) 2024, alexey.mcmlxxi@gmail.com
 #
 
 set -o pipefail
 
-export LANG=en_US
+export LANG="en_US"
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 shopt -u checkwinsize
@@ -26,7 +26,7 @@ SC_NAME="$( basename "${0}" )"
 SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
 SC_PID="$$"
 
-# Quick checks before we allow bad things to happen
+# -- Quick checks before we allow bad things to happen
 if [ -z "${BASH_VERSINFO}" ]; then
     >&2 echo "ERROR: You must execute this script with BASH"
     exit 1
