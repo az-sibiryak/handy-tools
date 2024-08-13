@@ -36,7 +36,6 @@ _rc=0
 for _cmd in \
     "dialog" \
     "iperf3" \
-    "lsb_release" \
 ; do
     if ! command -v "${_cmd}" > /dev/null 2>&1 ; then
         >&2 echo "${_cmd}: command not found!"
