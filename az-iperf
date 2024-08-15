@@ -1,14 +1,16 @@
 #!/bin/bash
 
+# ------------------------------------------------------------------------------------------ #
 #
 # Name:         az-iperf
-# Version:      1.0.9
+# Version:      1.0.10
 #
 # (c) 2024, alexey.mcmlxxi@gmail.com
 #
 # License:      GNU General Public License 3.0
 #               https://www.gnu.org/licenses/gpl-3.0.html
 #
+# ------------------------------------------------------------------------------------------ #
 
 set -o pipefail
 
@@ -25,9 +27,16 @@ case "${TERM}" in
 esac
 
 
-SC_NAME="$( basename "${0}" )"
-SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
-SC_PID="$$"
+#SC_NAME="$( basename "${0}" )"
+#SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
+#SC_PID="$$"
+
+
+# ------------------------------------------------------ #
+# --            Source standard library               -- #
+# ------------------------------------------------------ #
+
+. "${SC_DIR}/lib/handy-tools.lib.sh"
 
 # -- Quick checks before we allow bad things to happen
 if [ -z "${BASH_VERSINFO}" ]; then

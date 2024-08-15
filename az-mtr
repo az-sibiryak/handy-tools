@@ -1,14 +1,16 @@
 #!/bin/bash
 
+# ------------------------------------------------------------------------------------------ #
 #
 # Name:         az-mtr
-# Version:      1.0.3
+# Version:      1.0.4
 #
 # (c) 2024, alexey.mcmlxxi@gmail.com
 #
 # License:      GNU General Public License 3.0
 #               https://www.gnu.org/licenses/gpl-3.0.html
 #
+# ------------------------------------------------------------------------------------------ #
 
 set -o pipefail
 
@@ -22,10 +24,18 @@ case "${TERM}" in
       ;;
 esac
 
-SC_NAME="$( basename "${0}" )"
-SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
+#SC_NAME="$( basename "${0}" )"
+#SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
 
-# Quick checks before we allow bad things to happen
+
+# ------------------------------------------------------ #
+# --            Source standard library               -- #
+# ------------------------------------------------------ #
+
+. "${SC_DIR}/lib/handy-tools.lib.sh"
+
+
+# -- Quick checks before we allow bad things to happen
 if [ -z "${BASH_VERSINFO}" ]; then
     >&2 echo "ERROR: You must execute this script with BASH"
     exit 1
@@ -65,7 +75,7 @@ _usage() {
 	EOF
 }
 
-# Parse command line
+# -- Parse command line
 PARSE_ERR=0
 DNS="yes"
 while getopts ":hn" params; do
