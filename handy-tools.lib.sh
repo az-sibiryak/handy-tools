@@ -21,12 +21,14 @@ SC_DIR="$( dirname "${__sc_full_path}" )"
     && SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
 SC_PID="$$"
 
+
 LIB_NAME="$( basename "$( readlink -f "${BASH_SOURCE[0]}" )" )"
 LIB_DIR="$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"
 LIB_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${BASH_SOURCE[0]}" | awk '{print $NF}' )"
 export LIB_NAME
 export LIB_DIR
 export LIB_VER
+
 
 # --
 # -- `dialog` exit status codes
@@ -39,62 +41,6 @@ DIALOG_ITEM_HELP=4
 DIALOG_ESC=255
 DIALOG_OPTS="--ascii-lines --no-collapse --colors"
 
-# --
-# -- Log file
-# --
-export LOG_DIR="/var/log/app-mgr"
-if [ ! -d "${LOG_DIR}" ] ; then
-    if ! mkdir -p "${LOG_DIR}" ; then
-        >&2 echo "ERROR: Can't create ${LOG_DIR} directory! Aborting..."
-        exit 1
-    fi
-fi
-export LOG_FILE="${LOG_DIR}/${SC_NAME}.log"
-
-# --
-# -- State dir (database and other stuff)
-# --
-export STATE_DIR="/var/local/app-mgr"
-if [ ! -d "${STATE_DIR}" ] ; then
-    if ! mkdir -p "${STATE_DIR}" ; then
-        >&2 echo "ERROR: Can't create ${STATE_DIR} directory! Aborting..."
-        exit 1
-    else
-        chown -R root:root "${STATE_DIR}" &> /dev/null
-        chmod -R 0750 "${STATE_DIR}" &> /dev/null
-    fi
-fi
-export DB_DIR="${STATE_DIR}/db"
-if [ ! -d "${DB_DIR}" ] ; then
-    if ! mkdir -p "${DB_DIR}" ; then
-        >&2 echo "ERROR: Can't create ${DB_DIR} directory! Aborting..."
-        exit 1
-    else
-        chown -R root:root "${DB_DIR}" &> /dev/null
-        chmod -R 0750 "${DB_DIR}" &> /dev/null
-    fi
-fi
-export DB_NAME="app-mgr.db"
-export DB_TEMPLATE_NAME="app-mgr.template.db"
-export DB="${DB_DIR}/${DB_NAME}"
-export DB_TEMPLATE="${DB_DIR}/${DB_TEMPLATE_NAME}"
-
-# --
-# -- Check if another operation is in progress
-# --
-LOCK_FILE="/var/lock/app-mgr.lock"
-
-if [ "${APPMGR_LOCK}" = "yes" ] ; then
-    if ! flock -w 0.1 "${LOCK_FILE}" echo "" &> /dev/null ; then
-        >&2 echo "ERROR: Another operation is in progress!"
-        _sc_name="$( awk -F'|' '{print $1}' "${LOCK_FILE}" )"
-        _sc_pid="$(  awk -F'|' '{print $2}' "${LOCK_FILE}" )"
-        _sc_start_time="$(  awk -F'|' '{print $3}' "${LOCK_FILE}" )"
-        _sc_start_time_hr="$( date -d "@${_sc_start_time}" -u )"
-        >&2 echo "${_sc_name} [PID: ${_sc_pid}]: Running since ${_sc_start_time_hr}"
-        exit 100
-    fi
-fi
 
 # --
 # -- Check OS vendor/version
@@ -150,6 +96,7 @@ export LSB_FULL_VERSION
 export LSB_CODENAME
 export LSB_DESCRIPTION
 
+
 # --
 # -- Check OS family
 # --
@@ -184,115 +131,6 @@ _log_tstamp () {
 }
 
 
-# --
-# -- Prepare RedHat-based environment
-# --
-_prep_redhat () {
-    local _rc=0
-    return ${_rc}
-}
-
-
-# --
-# -- Prepare Debian-based environment
-# --
-_prep_debian () {
-    local _rc=0
-    local _key
-
-    declare -A __debian_utils
-    # -- Key == oommand, value == package
-    __debian_utils=( \
-          ["apt-add-repository"]="software-properties-common" \
-          ["bzip2"]="bzip2" \
-          ["curl"]="curl" \
-          ["dialog"]="dialog" \
-          ["dig"]="dnsutils" \
-          ["flock"]="util-linux" \
-          ["git"]="git-core" \
-          ["hostname"]="hostname" \
-          ["ping"]="iputils-ping" \
-          ["sqlite3"]="sqlite3" \
-          ["vim"]="vim" \
-          ["wget"]="wget" \
-        )
-    for _key in ${!__debian_utils[@]} ; do
-        if ! command -v "${_key}" &> /dev/null ; then
-            echo -e "${_key}:\tNOT found! Trying to install..."
-            if    apt-get -y -qq update \
-               && apt-get -y -qq \
-                          -o Dpkg::Options::='--force-confdef' \
-                      install "${__debian_utils[${_key}]}"
-            then
-                echo "Done."
-            else
-                >&2 echo "ERROR: Can't install '${__debian_utils[${_key}]}'! Aborting..."
-                exit 1
-            fi
-#        else
-#            echo -e "${_key}:\tFound ==> ${__debian_utils["${_key}"]}"
-        fi
-    done
-  # vvvvvvvvvvvvvvvvvvvvvvvvv FIXME vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-  if false ; then
-    # --
-    # -- Check if we have `nginx` package
-    # --
-    if    dpkg -s 'nginx' &> /dev/null \
-       && dpkg -s 'php-fpm' &> /dev/null
-    then
-        echo "nginx, php: OK"
-    else
-        echo -e "nginx, php:\tNOT found! Trying to install..."
-        if    apt-get -y -qq update \
-           && apt-get -y -qq \
-                      -o Dpkg::Options::='--force-confdef' \
-                  install "nginx" "php-fpm"
-            then
-                echo "Done."
-            else
-                >&2 echo "ERROR: Aborting..."
-                exit 1
-            fi
-    fi
-  fi
-  # ^^^^^^^^^^^^^^^^^^^^^^^^^ /FIXME ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    return ${_rc}
-}
-
-
-# --
-# -- Prepare environment
-# --
-_prep_env () {
-    local _rc=0
-
-    # -- Prepare running environment for the determined LSB_OSFAMILY
-    _prep_${LSB_OSFAMILY}
-
-    return ${_rc}
-}
-
-
-# --
-# -- FIXME
-# --
-SCRIPTENTRY () {
-    local _rc=0
-    return ${_rc}
-}
-
-
-# --
-# -- FIXME
-# --
-SCRIPTEXIT () {
-    local _rc=0
-    return ${_rc}
-}
-
-
 
 # =========================================================== #
 #                                                             #
@@ -302,9 +140,3 @@ SCRIPTEXIT () {
 
 HOSTNAME="$( hostname )"
 export HOSTNAME
-
-# == Prepare running environment
-_prep_env
-
-
-
