@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------ #
 #
 # Name:         az-mtr
-# Version:      1.0.4
+# Version:      1.0.5
 #
 # (c) 2024, alexey.mcmlxxi@gmail.com
 #
@@ -23,9 +23,6 @@ case "${TERM}" in
       export TERM="linux"
       ;;
 esac
-
-#SC_NAME="$( basename "${0}" )"
-#SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
 
 
 # ------------------------------------------------------ #

@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------ #
 #
 # Name:         az-iperf
-# Version:      1.0.10
+# Version:      1.0.11
 #
 # (c) 2024, alexey.mcmlxxi@gmail.com
 #
@@ -26,10 +26,6 @@ case "${TERM}" in
       ;;
 esac
 
-
-#SC_NAME="$( basename "${0}" )"
-#SC_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${0}" | awk '{print $NF}' )"
-#SC_PID="$$"
 
 
 # ------------------------------------------------------ #
@@ -212,120 +208,6 @@ oceania=( \
     [NC, Noumea \(OFFRATELNC\)]="speedtest.lagoon.nc" \
     [NZ, Auckland \(NOW NZ\)]="speedtest5.nownz.co.nz" \
     )
-
-
-
-## ----------------------------------------------------------------- #
-## --                                                             -- #
-## --                 GLOBAL VARIABLES                            -- #
-## --                                                             -- #
-## ----------------------------------------------------------------- #
-#
-### -- TERM dimensions
-##max_lines="$( tput lines )"
-##max_lines="$(( max_lines - 3 ))"
-##max_columns="$( tput cols )"
-##export max_lines max_columns
-#
-### -- `dialog` exit status codes and options
-##DIALOG_OK=0
-##DIALOG_CANCEL=1
-##DIALOG_HELP=2
-##DIALOG_EXTRA=3
-##DIALOG_ITEM_HELP=4
-##DIALOG_ESC=255
-##DIALOG_OPTS="--ascii-lines --no-collapse --colors"
-#
-INPUT="/tmp/${SC_NAME}.${SC_PID}.in"
-OUTPUT="/tmp/${SC_NAME}.${SC_PID}.out"
-
-#
-## ----------------------------------------------------------------- #
-## --                                                             -- #
-## --                     FUNCTIONS                               -- #
-## --                                                             -- #
-## ----------------------------------------------------------------- #
-#
-## -- Echo the backtitle string in form 'Backtitle ... spaces ... [SC_VER]'
-#_backtitle () {
-#    local v_len
-#    local t_len
-#    local n_spaces
-#    local bt
-#
-#    bt="${SC_NAME} ${SC_VER}: ${1}"
-#
-#    t_len="$( wc -c <<< "${bt}" )"
-#    v_len="$( wc -c <<< "${SC_VER}" )"
-#    n_spaces="$(( max_columns - t_len - v_len ))"
-#
-#    printf "%s%${n_spaces}s%s" "${bt}" " " "${SC_VER}"
-#}
-#
-#_dialog_msgbox () {
-#    local t="${1}"                  # box title 
-#    local b="${2}"                  # backtitle
-#    local m="${3}"                  # box content
-#    local bt
-#
-#    dialog \
-#        ${DIALOG_OPTS} \
-#        --aspect 14 \
-#        --title "   ${t}   " \
-#        --backtitle "$( _backtitle "${b}" )" \
-#        --scrollbar \
-#        --msgbox "${m}" \
-#        0 0
-#
-#    return 0
-#}
-#
-#_dialog_infobox () {
-#    local t="${1}"                  # box title 
-#    local b="${2}"                  # backtitle
-#    local m="${3}"                  # box content
-#    local bt
-#
-#    dialog \
-#        ${DIALOG_OPTS} \
-#        --aspect 14 \
-#        --title "   ${t}   " \
-#        --backtitle "$( _backtitle "${b}" )" \
-#        --infobox "${m}" \
-#        0 0
-#
-#    return 0
-#}
-#
-#_dialog_please_wait () {
-#    local t="${1}"                  # box title 
-#    local b="${2}"                  # backtitle
-#    local bt
-#
-#    _dialog_infobox "${t}" "${b}" "\n      Please wait      \n\n"
-#
-#    return 0
-#}
-#
-#_dialog_textbox () {
-#    local t="${1}"                  # box title 
-#    local b="${2}"                  # backtitle
-#    local m="${3}"                  # box content
-#
-#    echo -e "${m}" | expand > "${TEXT}"
-#
-#    dialog \
-#        ${DIALOG_OPTS} \
-#        --aspect 14 \
-#        --title "   ${t}   " \
-#        --backtitle "$( _backtitle "${b}" )" \
-#        --exit-label "OK" \
-#        --scrollbar \
-#        --textbox "${TEXT}" \
-#        0 0
-#
-#    return 0
-#}
 
 
 
