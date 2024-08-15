@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------ #
 #
 # Name:         az-iperf
-# Version:      1.0.11
+# Version:      1.1.0
 #
 # (c) 2024, alexey.mcmlxxi@gmail.com
 #
@@ -331,6 +331,11 @@ while true ; do
 #            )"
 #        _rc=$?
 
+        if [ -e "${TMPFILE}" ] ; then
+            rm -f "${TMPFILE}" > /dev/null 2>&1
+            touch "${TMPFILE}" > /dev/null 2>&1
+        fi
+
         dialog ${DIALOG_OPTS} \
                  --backtitle "$( _backtitle "${_bt}" )" \
                  --title " *** Processing: ${iperf_server} *** " \
@@ -339,12 +344,8 @@ while true ; do
                  --tailbox \
                  "${TMPFILE}" \
                  "${max_lines}" "${max_columns}" &
-
-#        RUN_LOG "echo $! > ${TMPFILE}"
-#        RUN_LOG "bash ${BASH_OPTS} './${_sc_name}' '${USERNAME}' '${USERPASSWORD}'"
-#        main_rc=$?
-#        RUN_LOG "kill $( cat "${TMPFILE}" )"
         _tailbox_pid="$!"
+
         timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" 2>&1 >> "${TMPFILE}"
         _rc=$?
         kill "${_tailbox_pid}" > /dev/null 2>&1
