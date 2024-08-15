@@ -343,7 +343,8 @@ while true ; do
                  --exit-label " ...Please wait... " \
                  --tailbox \
                  "${TMPFILE}" \
-                 "${max_lines}" "${max_columns}" &
+                 2 0 &
+#                 "${max_lines}" "${max_columns}" &
         _tailbox_pid="$!"
 
         timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" 2>&1 >> "${TMPFILE}"
