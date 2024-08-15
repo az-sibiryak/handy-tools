@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------ #
 #
 # Name:         az-iperf
-# Version:      1.1.0
+# Version:      1.1.2
 #
 # (c) 2024, alexey.mcmlxxi@gmail.com
 #
@@ -292,10 +292,6 @@ while true ; do
 
         _bt="Testing ${region}, ${location}"
 
-#        _dialog_please_wait \
-#            "*** Processing: ${iperf_server} ***" \
-#            "${_bt}"
-
         case "${iperf_server}" in
           "sgp.proof.ovh.net" \
           | "speedtest.myrepublic.net.id")
@@ -326,11 +322,6 @@ while true ; do
               ;;
         esac
 
-#        iperf_result="$( \
-#            timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" 2>&1 \
-#            )"
-#        _rc=$?
-
         if [ -e "${TMPFILE}" ] ; then
             rm -f "${TMPFILE}" > /dev/null 2>&1
             touch "${TMPFILE}" > /dev/null 2>&1
@@ -339,16 +330,13 @@ while true ; do
         dialog ${DIALOG_OPTS} \
                  --backtitle "$( _backtitle "${_bt}" )" \
                  --title " *** Processing: ${iperf_server} *** " \
-                 --hline "...Some text..." \
                  --exit-label " ...Please wait... " \
                  --tailbox \
                  "${TMPFILE}" \
                  "$(( max_lines - 2 ))" "$(( max_columns - 2 ))" &
-#                 2 0 &
-#                 "${max_lines}" "${max_columns}" &
         _tailbox_pid="$!"
 
-        timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" 2>&1 >> "${TMPFILE}"
+        timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" >> "${TMPFILE}" 2>&1
         _rc=$?
         kill "${_tailbox_pid}" > /dev/null 2>&1
 
