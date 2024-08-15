@@ -349,6 +349,8 @@ while true ; do
         _rc=$?
         kill "${_tailbox_pid}" > /dev/null 2>&1
 
+        iperf_result="$( < "${TMPFILE}" )"
+
         if [ "${_rc}" != "0" ] ; then
             if [ "${_rc}" = "124" ] ; then
                 iperf_result="${iperf_result}
