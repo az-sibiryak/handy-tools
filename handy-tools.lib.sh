@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------ #
 #
 # Name:         handy-tools.lib.sh
-# Version:      1.0.0
+# Version:      1.0.1
 #
 # (c) 2024, alexey.mcmlxxi@gmail.com
 #
@@ -28,6 +28,19 @@ LIB_VER="$( grep -m 1 -E '^#\s*Version:\s+' "${BASH_SOURCE[0]}" | awk '{print $N
 export LIB_NAME
 export LIB_DIR
 export LIB_VER
+
+
+# ----------------------------------------------------------------- #
+# --                                                             -- #
+# --                 GLOBAL VARIABLES                            -- #
+# --                                                             -- #
+# ----------------------------------------------------------------- #
+
+# -- TERM dimensions
+max_lines="$( tput lines )"
+max_lines="$(( max_lines - 3 ))"
+max_columns="$( tput cols )"
+export max_lines max_columns
 
 
 # --
@@ -123,9 +136,95 @@ case "${LSB_OSFAMILY}" in
 esac
 
 
-# --
+# ----------------------------------------------------------------- #
+# --                                                             -- #
+# --                     FUNCTIONS                               -- #
+# --                                                             -- #
+# ----------------------------------------------------------------- #
+
+# -- Echo the backtitle string in form 'Backtitle ... spaces ... [SC_VER]'
+_backtitle () {
+    local v_len
+    local t_len
+    local n_spaces
+    local bt
+
+    bt="${SC_NAME} ${SC_VER}: ${1}"
+
+    t_len="$( wc -c <<< "${bt}" )"
+    v_len="$( wc -c <<< "${SC_VER}" )"
+    n_spaces="$(( max_columns - t_len - v_len ))"
+
+    printf "%s%${n_spaces}s%s" "${bt}" " " "${SC_VER}"
+}
+
+_dialog_msgbox () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local m="${3}"                  # box content
+    local bt
+
+    dialog \
+        ${DIALOG_OPTS} \
+        --aspect 14 \
+        --title "   ${t}   " \
+        --backtitle "$( _backtitle "${b}" )" \
+        --scrollbar \
+        --msgbox "${m}" \
+        0 0
+
+    return 0
+}
+
+_dialog_infobox () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local m="${3}"                  # box content
+    local bt
+
+    dialog \
+        ${DIALOG_OPTS} \
+        --aspect 14 \
+        --title "   ${t}   " \
+        --backtitle "$( _backtitle "${b}" )" \
+        --infobox "${m}" \
+        0 0
+
+    return 0
+}
+
+_dialog_please_wait () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local bt
+
+    _dialog_infobox "${t}" "${b}" "\n      Please wait      \n\n"
+
+    return 0
+}
+
+_dialog_textbox () {
+    local t="${1}"                  # box title 
+    local b="${2}"                  # backtitle
+    local m="${3}"                  # box content
+
+    echo -e "${m}" | expand > "${TEXT}"
+
+    dialog \
+        ${DIALOG_OPTS} \
+        --aspect 14 \
+        --title "   ${t}   " \
+        --backtitle "$( _backtitle "${b}" )" \
+        --exit-label "OK" \
+        --scrollbar \
+        --textbox "${TEXT}" \
+        0 0
+
+    return 0
+}
+
+
 # -- Return formatted date string for logs
-# --
 _log_tstamp () {
     date -u +"%d-%m-%Y %T %Z" 2> /dev/null
 }
