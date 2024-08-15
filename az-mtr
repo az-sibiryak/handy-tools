@@ -32,7 +32,7 @@ esac
 # --            Source standard library               -- #
 # ------------------------------------------------------ #
 
-. "${SC_DIR}/lib/handy-tools.lib.sh"
+. "/usr/local/lib/handy-tools.lib.sh"
 
 
 # -- Quick checks before we allow bad things to happen
