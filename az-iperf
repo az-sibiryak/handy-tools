@@ -212,6 +212,7 @@ oceania=( \
 
 INPUT="/tmp/${SC_NAME}.${SC_PID}.in"
 OUTPUT="/tmp/${SC_NAME}.${SC_PID}.out"
+TMPFILE="/tmp/${SC_NAME}.${SC_PID}.tmp"
 
 
 
@@ -291,9 +292,9 @@ while true ; do
 
         _bt="Testing ${region}, ${location}"
 
-        _dialog_please_wait \
-            "*** Processing: ${iperf_server} ***" \
-            "${_bt}"
+#        _dialog_please_wait \
+#            "*** Processing: ${iperf_server} ***" \
+#            "${_bt}"
 
         case "${iperf_server}" in
           "sgp.proof.ovh.net" \
@@ -325,10 +326,28 @@ while true ; do
               ;;
         esac
 
-        iperf_result="$( \
-            timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" 2>&1 \
-            )"
+#        iperf_result="$( \
+#            timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" 2>&1 \
+#            )"
+#        _rc=$?
+
+        dialog ${DIALOG_OPTS} \
+                 --backtitle "$( _backtitle "${_bt}" )" \
+                 --title " *** Processing: ${iperf_server} *** " \
+                 --hline "...Some text..." \
+                 --exit-label " ...Please wait... " \
+                 --tailbox \
+                 "${TMPFILE}" \
+                 "${max_lines}" "${max_columns}" &
+
+#        RUN_LOG "echo $! > ${TMPFILE}"
+#        RUN_LOG "bash ${BASH_OPTS} './${_sc_name}' '${USERNAME}' '${USERPASSWORD}'"
+#        main_rc=$?
+#        RUN_LOG "kill $( cat "${TMPFILE}" )"
+        _tailbox_pid="$!"
+        timeout 5m iperf3 -4 --forceflush -c "${iperf_server}" -p "${iperf_port}" 2>&1 >> "${TMPFILE}"
         _rc=$?
+        kill "${_tailbox_pid}" > /dev/null 2>&1
 
         if [ "${_rc}" != "0" ] ; then
             if [ "${_rc}" = "124" ] ; then
@@ -362,6 +381,7 @@ done
 # -- Cleanup
 [ -e "${INPUT}" ] && rm -f "${INPUT}"
 [ -e "${OUTPUT}" ] && rm -f "${OUTPUT}"
+[ -e "${TMPFILE}" ] && rm -f "${TMPFILE}"
 
 reset
 exit 0
