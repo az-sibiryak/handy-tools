@@ -343,7 +343,8 @@ while true ; do
                  --exit-label " ...Please wait... " \
                  --tailbox \
                  "${TMPFILE}" \
-                 2 0 &
+                 "$(( max_lines - 2 ))" "$(( max_columns - 2 ))" &
+#                 2 0 &
 #                 "${max_lines}" "${max_columns}" &
         _tailbox_pid="$!"
 
