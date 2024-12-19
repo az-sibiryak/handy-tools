@@ -295,9 +295,10 @@ export myvar=hello
  4.  What is the Linux Standard Base?
  5.  What is an atomic operation?
  6.  Your freshly configured http server is not running after a restart, what can you do?
- 7.  What kind of keys are in ''~/.ssh/authorized_keys'' and what this file is used for?
- 8.  I've added my public ssh key into ''~/.ssh/authorized_keys'' but I'm still getting a password prompt. \\ What can be wrong?
-     - First of all check the running ''sshd'' config
+ 7.  What kind of keys are in `~/.ssh/authorized_keys` and what this file is used for?
+ 8.  I've added my public ssh key into `~/.ssh/authorized_keys` but I'm still getting a password prompt.
+What can be wrong?
+     - First of all check the running `sshd` config
 ```
 sshd -T | grep -i 'pubkeyauth'
 ```
@@ -305,8 +306,8 @@ sshd -T | grep -i 'pubkeyauth'
 ```
 pubkeyauthentication yes
 ```
-     - File/directory permissions issue - the primary suspect \\ Look at the ''/var/log/secure'' (RHEL/CentOS), ''/var/log/auth.log'' (Debian-based).
- 9.  What should be the files/directories permissions for - ''~'', ''~/.ssh'', ''~/.ssh/authorized_keys'' ?
+     - File/directory permissions issue - the primary suspect Look at the `/var/log/secure` (RHEL/CentOS), `/var/log/auth.log` (Debian-based).
+ 9.  What should be the files/directories permissions for: `~`, `~/.ssh`, `~/.ssh/authorized_keys` ?
 ```
 ~# ls -ald /root
 drwx------ 6 root root 4096 Aug 30 15:57 /root
@@ -413,13 +414,13 @@ man sh
 
 ### Demo Time
 
- 1.  Unpack ''test.tar.gz''  without man pages or google.
+ 1.  Unpack `test.tar.gz`  without man pages or google.
     - `tar zxvf test.tar.gz -C /path/to/destination/directory`{bash}
- 2.  Remove all ''*.pyc''  files from testdir recursively?
+ 2.  Remove all `*.pyc`  files from testdir recursively?
     - `find /test/dir -name "*.pyc" -a -type f -delete`{bash}
- 3.  Search for "my kung fu is the best" in all ''*.py''  files.
+ 3.  Search for "my kung fu is the best" in all `*.py`  files.
     - `find / -name "*.py" -exec grep -H -r "my kung fu is the best" {} \;`{bash}
- 4.  Replace the occurrence of "my kung fu is the best" with "I'm a linux jedi master" in all ''*.txt''  files.
+ 4.  Replace the occurrence of "my kung fu is the best" with "I'm a linux jedi master" in all `*.txt`  files.
     - `find / -name "*.txt" -exec sed -i -e "s/my kung fu is the best/I'm a linux jedi master/g" {} \;`{bash}
  5.  Test if port 443 on a machine with IP address X.X.X.X is reachable.
     - `telnet ya.ru 443`{bash}
@@ -443,7 +444,7 @@ QUIT
     - `find / -atime 30`{bash}
  9.  Explain the following command ''(date ; ps -ef | awk '{print $1}' | sort | uniq | wc -l ) >> Activity.log''
  10.  Write a script to list all the differences between two directories.
- 11.  In a log file with contents as `<TIME>` : [MESSAGE] : [ERROR_NO] - Human readable text'' display summary/count of specific error numbers that occurred every hour or a specific hour.
+ 11.  In a log file with contents as `<TIME> : [MESSAGE] : [ERROR_NO] - Human readable text` display summary/count of specific error numbers that occurred every hour or a specific hour.
 
 
 \\ \\
