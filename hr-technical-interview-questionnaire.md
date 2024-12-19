@@ -6,7 +6,7 @@
 Hiring a junior Linux System Administrator can be a challenging task, especially if you are interviewing for someone who is above your own Linux skill set! How do you know for sure that they are going to be any good at what they say they can do? What are the best interview questions to ask a junior Linux System Admin? \\ \\
 In our experience, the best way to gauge an employees skill set is to put them in front of a command line interface and have them execute a number of straightforward tasks. Oftentimes, candidates will say that they have strong skills in Linux, but when confronted with an actual problem, they don't have the "tools" to fix it themselves. So, what we look for is a candidate's ability to use tools, rather than their ability to fix a particular problem.
 From: [Test To Give When Hiring or Interviewing a Junior Linux System Administrator](http://www.linux.org/threads/test-to-give-when-hiring-or-interviewing-a-junior-linux-system-administrator.355/)
-\\ \\
+
 
 
 ------
@@ -482,9 +482,7 @@ QUIT
  14.  [11 Basic Linux Interview Questions and Answers](https///www.tecmint.com/basic-linux-interview-questions-and-answers/)
 
 
-\\
 ----------------------------
-`<WRAP lo>`
-2016-2018
-`</WRAP>`
+(c) 2016-2018
+
 
