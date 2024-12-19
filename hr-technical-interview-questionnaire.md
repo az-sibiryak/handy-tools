@@ -16,9 +16,9 @@ From: [Test To Give When Hiring or Interviewing a Junior Linux System Administra
 
 ## Linux System Administrator Fast Questions
 
- 1.  What is your favourite shell and why?
+ 1.  What is your favourite shell and why?\
     - Answers may vary :-)
- 2.  What do you need to do to start a service at startup? \\ Please provide multiple variants.
+ 3.  What do you need to do to start a service at startup? \\ Please provide multiple variants.\
     - Answers:
 ```
 chkconfig "svc" on
@@ -27,7 +27,7 @@ systemctl enable "svc"
 /etc/rc.local
 .....
 ```
- 3.  What debugging steps will you take when your manager tells you that the website is slow?
+ 3.  What debugging steps will you take when your manager tells you that the website is slow?\
     - Answers may vary :-)
  4.  Choose the odd one out.
 ```
@@ -39,10 +39,10 @@ nano
 ```
     - Answer: The odd one in the above list is ``cd`.\
 `vi`, `vim`, `emacs` and `nano` are editors which is useful in editing files,\
- while ''cd'' command is used for changing directory.
+ while `cd` command is used for changing directory.
 
  5.  How to get the number of active connections to the server's `ssh` service?\
-Please provide simple one line commands sequence.
+Please provide simple one line commands sequence.\
     -  Simple answer #1
 ```
 netstat -an | grep ':22 ' | grep ESTAB | wc -l
@@ -51,7 +51,8 @@ netstat -an | grep ':22 ' | grep ESTAB | wc -l
 ```
 netstat -anp | grep '/sshd' | grep ESTAB | wc -l
 ```
- 6.  How to comment a code block in shell? \\ Please provide multiple variants.
+ 6.  How to comment a code block in shell?\
+Please provide multiple variants.\
     - Stupid answer.
 ```
 # command1
@@ -103,24 +104,31 @@ A collection of linux sysadmin/devops interview questions.
  3.  Tell me please about the last major Linux project you finished.
  4.  Tell me please about the biggest mistake you've made in [some recent time period] and how you would do it differently today. What did you learn from this experience?
  5.  Why we must choose you?
- 6.  Non-technical one: \\ How do you think - are you "fast-learner" of new things? \\ For example, how many time do you need to learn new linux distro? (1-5 days, 1-2 weeks, 1(+) month(s)) \\ Hint: you can give more than one answer here. \\ For example: \\ ***1-3 days** to start using it.* \\ ***1-2 weeks** to start configure it for your needs.* \\ ***3 months** - expert level*
- 7.  What function does **DNS** play on a network?
- 8.  What is **HTTP**?
+ 6.  Non-technical one:\
+How do you think - are you "fast-learner" of new things?\
+For example, how many time do you need to learn new linux distro? (1-5 days, 1-2 weeks, 1(+) month(s))\
+Hint: you can give more than one answer here.\
+For example:\
+***1-3 days** to start using it.*\
+***1-2 weeks** to start configure it for your needs.*\
+ **3 months** - expert level*
+ 8.  What function does **DNS** play on a network?
+ 9.  What is **HTTP**?
     - [https://tools.ietf.org/html/rfc2616](https///tools.ietf.org/html/rfc2616)
     - [https://en.wikipedia.org/wiki/HTTP](https///en.wikipedia.org/wiki/HTTP)
- 9.  What is an **HTTP proxy** and how does it work?
+ 10.  What is an **HTTP proxy** and how does it work?
     - [https://en.wikipedia.org/wiki/HTTP_proxy](https///en.wikipedia.org/wiki/HTTP_proxy)
- 10.  Describe briefly how **HTTPS** works.
+ 11.  Describe briefly how **HTTPS** works.
     - [https://en.wikipedia.org/wiki/HTTPS](https///en.wikipedia.org/wiki/HTTPS)
- 11.  What is **SMTP**? Give the basic scenario of how a mail message is delivered via **SMTP**.
+ 12.  What is **SMTP**? Give the basic scenario of how a mail message is delivered via **SMTP**.
     - [https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol](https///en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol)
     - FIXME
- 12.  What is **RAID**? What is **RAID0**, **RAID1**, **RAID5**, **RAID10**?
+ 13.  What is **RAID**? What is **RAID0**, **RAID1**, **RAID5**, **RAID10**?
     - [https://en.wikipedia.org/wiki/RAID](https///en.wikipedia.org/wiki/RAID)
- 13.  What is a **level 0 backup**? What is an **incremental backup**?
+ 14.  What is a **level 0 backup**? What is an **incremental backup**?
     - [https://en.wikipedia.org/wiki/Backup](https///en.wikipedia.org/wiki/Backup)
     - [https://en.wikipedia.org/wiki/Incremental_backup](https///en.wikipedia.org/wiki/Incremental_backup)
- 14.  Describe the general file system hierarchy of a Linux system.
+ 15.  Describe the general file system hierarchy of a Linux system.
 
 ### Simple Linux Questions
 
