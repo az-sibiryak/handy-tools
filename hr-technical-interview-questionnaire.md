@@ -37,9 +37,11 @@ vim
 cd
 nano
 ```
-    - Answer: The odd one in the above list is ``cd`.
-`vi`, `vim`, `emacs` and `nano` are editors which is useful in editing files, while ''cd'' command is used for changing directory.
- 5.  How to get the number of active connections to the server's `ssh` service?
+    - Answer: The odd one in the above list is ``cd`.\
+`vi`, `vim`, `emacs` and `nano` are editors which is useful in editing files,\
+ while ''cd'' command is used for changing directory.
+
+ 5.  How to get the number of active connections to the server's `ssh` service?\
 Please provide simple one line commands sequence.
     -  Simple answer #1
 ```
